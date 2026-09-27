@@ -124,6 +124,13 @@ public abstract class StandardV2RayBean extends AbstractBean {
     public Integer muxBrutalUpMbps;
     public Integer muxBrutalDownMbps;
 
+    // SNI Spoofing (root sidecar, per-profile)
+    public Boolean sniSpoofEnabled;
+    public String sniSpoofConnect;   // host:port override, blank = server address
+    public String sniSpoofFakeSni;  // decoy SNI, blank = sidecar default
+    public String sniSpoofUtls;     // utls fingerprint, blank = chrome
+    public String sniSpoofInjector; // injector mode, blank = active
+
 
     // --------------------------------------- //
 
@@ -186,6 +193,11 @@ public abstract class StandardV2RayBean extends AbstractBean {
         if (muxBrutalUpMbps == null) muxBrutalUpMbps = 100;
         if (muxBrutalDownMbps == null) muxBrutalDownMbps = 100;
 
+        if (sniSpoofEnabled == null) sniSpoofEnabled = false;
+        if (sniSpoofConnect == null) sniSpoofConnect = "";
+        if (sniSpoofFakeSni == null) sniSpoofFakeSni = "";
+        if (sniSpoofUtls == null) sniSpoofUtls = "";
+        if (sniSpoofInjector == null) sniSpoofInjector = "";
         if (JavaUtil.isNullOrBlank(xhttpMode)) xhttpMode = "auto";
         if (JavaUtil.isNullOrBlank(xhttpExtra)) xhttpExtra = "";
         if (JavaUtil.isNullOrBlank(xhttpUplinkDataPlacement)) xhttpUplinkDataPlacement = "";
@@ -235,7 +247,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(18);
+        output.writeInt(19);
         super.serialize(output);
         output.writeString(uuid);
         output.writeString(encryption);
@@ -359,6 +371,12 @@ public abstract class StandardV2RayBean extends AbstractBean {
         output.writeBoolean(muxBrutal);
         output.writeInt(muxBrutalUpMbps);
         output.writeInt(muxBrutalDownMbps);
+        // v19: SNI Spoofing (root sidecar, per-profile)
+        output.writeBoolean(sniSpoofEnabled);
+        output.writeString(sniSpoofConnect);
+        output.writeString(sniSpoofFakeSni);
+        output.writeString(sniSpoofUtls);
+        output.writeString(sniSpoofInjector);
     }
 
     @Override
@@ -552,6 +570,15 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
         // Note: xhttp fields are read in the switch case above when version >= 4
         // Note: kcp fields are read in the switch case above when version >= 6
+
+        // v19: SNI Spoofing (root sidecar, per-profile)
+        if (version >= 19) {
+            sniSpoofEnabled = input.readBoolean();
+            sniSpoofConnect = input.readString();
+            sniSpoofFakeSni = input.readString();
+            sniSpoofUtls = input.readString();
+            sniSpoofInjector = input.readString();
+        }
     }
 
     public boolean isVLESS() {

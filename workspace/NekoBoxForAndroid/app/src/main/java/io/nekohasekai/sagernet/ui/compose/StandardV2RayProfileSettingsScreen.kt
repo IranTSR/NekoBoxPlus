@@ -22,6 +22,7 @@ internal fun StandardV2RayProfileSettingsScreen(
     val muxMode = store.getString("muxMode")?.toIntOrNull() ?: 0
     val muxEnabled = store.getBoolean("enableMux", false)
     val muxBrutal = store.getBoolean("muxBrutal", false)
+    val sniSpoofEnabled = store.getBoolean("sniSpoofEnabled", false)
     val preferences = remember(revision, isHttp, isVmess, isVless, isTrojan) {
         fun c(title: Int) = CachePreferenceCategory(title)
         fun t(icon: Int, title: Int, key: String, secret: Boolean = false, number: Boolean = false) =
@@ -138,6 +139,21 @@ internal fun StandardV2RayProfileSettingsScreen(
                 add(s(R.drawable.ic_baseline_security_24, R.string.enable, "enableECH"))
                 add(t(R.drawable.ic_baseline_nfc_24, R.string.ech_config, "echConfig"))
             }
+
+            add(c(R.string.sni_spoof_cat))
+            add(s(R.drawable.ic_baseline_security_24, R.string.sni_spoof_enable, "sniSpoofEnabled",
+                R.string.sni_spoof_enable_summary))
+            if (sniSpoofEnabled) {
+                add(CacheTextPreference(R.drawable.ic_hardware_router, R.string.sni_spoof_connect,
+                    "sniSpoofConnect", fixedSummary = R.string.sni_spoof_connect_hint))
+                add(CacheTextPreference(R.drawable.ic_action_copyright, R.string.sni_spoof_fake_sni,
+                    "sniSpoofFakeSni", fixedSummary = R.string.sni_spoof_fake_sni_hint))
+                add(l(R.drawable.ic_baseline_fingerprint_24, R.string.sni_spoof_utls, "sniSpoofUtls",
+                    R.array.sni_spoof_utls_entry, R.array.sni_spoof_utls_value))
+                add(l(R.drawable.ic_baseline_compare_arrows_24, R.string.sni_spoof_injector,
+                    "sniSpoofInjector", R.array.sni_spoof_injector_entry,
+                    R.array.sni_spoof_injector_value))
+            }
         }
     }
     CacheProfileSettingsScreen(
@@ -145,7 +161,9 @@ internal fun StandardV2RayProfileSettingsScreen(
         includeTlsOptions = true,
         stateRevision = revision,
         onValueChanged = { key, _ ->
-            if (key in setOf("type", "security", "enableMux", "muxMode", "muxBrutal")) revision++
+            if (key in setOf("type", "security", "enableMux", "muxMode", "muxBrutal",
+                    "sniSpoofEnabled")
+            ) revision++
         },
     )
 }

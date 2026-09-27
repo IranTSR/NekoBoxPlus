@@ -323,6 +323,17 @@
     <string name="mux_brutal">TCP Brutal</string>
     <string name="mux_brutal_up_mbps">Upload (Mbps)</string>
     <string name="mux_brutal_down_mbps">Download (Mbps)</string>
+    <string name="sni_spoof_cat">SNI Spoofing</string>
+    <string name="sni_spoof_enable">SNI Spoofing</string>
+    <string name="sni_spoof_enable_summary">Needs root; traffic goes through the sidecar with a fake SNI</string>
+    <string name="sni_spoof_connect">Spoof IP:port</string>
+    <string name="sni_spoof_connect_hint">Empty uses the profile server</string>
+    <string name="sni_spoof_fake_sni">Decoy SNI</string>
+    <string name="sni_spoof_fake_sni_hint">Required when the address is an IP</string>
+    <string name="sni_spoof_utls">uTLS Fingerprint</string>
+    <string name="sni_spoof_injector">Injector</string>
+    <string name="sni_spoof_injector_active">Active</string>
+    <string name="sni_spoof_injector_passive">Passive</string>
     <string name="tcp_keep_alive_interval">TCP keep active packet delivery interval</string>
     <string name="sing_box_dial_options">sing-box connection options</string>
     <string name="tcp_fast_open">TCP Fast Open</string>

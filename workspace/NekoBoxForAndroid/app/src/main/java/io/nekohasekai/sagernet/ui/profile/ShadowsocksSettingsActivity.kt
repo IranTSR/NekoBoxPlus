@@ -36,6 +36,13 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
     private val muxBrutalUpMbps = pbm.add(PreferenceBinding(Type.TextToInt, "muxBrutalUpMbps"))
     private val muxBrutalDownMbps = pbm.add(PreferenceBinding(Type.TextToInt, "muxBrutalDownMbps"))
 
+    // SNI Spoofing (root sidecar, per-profile)
+    private val sniSpoofEnabled = pbm.add(PreferenceBinding(Type.Bool, "sniSpoofEnabled"))
+    private val sniSpoofConnect = pbm.add(PreferenceBinding(Type.Text, "sniSpoofConnect"))
+    private val sniSpoofFakeSni = pbm.add(PreferenceBinding(Type.Text, "sniSpoofFakeSni"))
+    private val sniSpoofUtls = pbm.add(PreferenceBinding(Type.Text, "sniSpoofUtls"))
+    private val sniSpoofInjector = pbm.add(PreferenceBinding(Type.Text, "sniSpoofInjector"))
+
     override fun ShadowsocksBean.init() {
         pbm.writeToCacheAll(this)
 

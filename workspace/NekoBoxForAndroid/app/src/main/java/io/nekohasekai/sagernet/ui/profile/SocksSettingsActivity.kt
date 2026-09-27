@@ -20,6 +20,13 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
         DataStore.serverPassword = password
 
         DataStore.profileCacheStore.putBoolean("sUoT", sUoT)
+
+        // SNI Spoofing (root sidecar, per-profile)
+        DataStore.profileCacheStore.putBoolean("sniSpoofEnabled", sniSpoofEnabled)
+        DataStore.profileCacheStore.putString("sniSpoofConnect", sniSpoofConnect)
+        DataStore.profileCacheStore.putString("sniSpoofFakeSni", sniSpoofFakeSni)
+        DataStore.profileCacheStore.putString("sniSpoofUtls", sniSpoofUtls)
+        DataStore.profileCacheStore.putString("sniSpoofInjector", sniSpoofInjector)
     }
 
     override fun SOCKSBean.serialize() {
@@ -32,6 +39,13 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
         password = DataStore.serverPassword
 
         sUoT = DataStore.profileCacheStore.getBoolean("sUoT")
+
+        // SNI Spoofing (root sidecar, per-profile)
+        sniSpoofEnabled = DataStore.profileCacheStore.getBoolean("sniSpoofEnabled")
+        sniSpoofConnect = DataStore.profileCacheStore.getString("sniSpoofConnect")
+        sniSpoofFakeSni = DataStore.profileCacheStore.getString("sniSpoofFakeSni")
+        sniSpoofUtls = DataStore.profileCacheStore.getString("sniSpoofUtls")
+        sniSpoofInjector = DataStore.profileCacheStore.getString("sniSpoofInjector")
     }
 
     @Composable

@@ -1639,4 +1639,52 @@
         <item>@string/subscription_xray_balancers_convert</item>
         <item>@string/subscription_xray_balancers_split</item>
     </string-array>
+    <string-array name="sni_spoof_utls_entry">
+        <item>Chrome</item>
+        <item>Firefox</item>
+        <item>Edge</item>
+        <item>Safari</item>
+        <item>360</item>
+        <item>QQ</item>
+        <item>iOS</item>
+        <item>Android</item>
+        <item>Random</item>
+        <item>Randomized</item>
+        <item>Golang</item>
+        <item>Custom</item>
+        <item>RandomizedALPN</item>
+        <item>RandomizedNoALPN</item>
+        <item>Firefox_Auto</item>
+        <item>Firefox_55</item>
+        <item>Firefox_56</item>
+        <item>Firefox_63</item>
+    </string-array>
+    <string-array name="sni_spoof_utls_value">
+        <item>chrome</item>
+        <item>firefox</item>
+        <item>edge</item>
+        <item>safari</item>
+        <item>360</item>
+        <item>qq</item>
+        <item>ios</item>
+        <item>android</item>
+        <item>random</item>
+        <item>randomized</item>
+        <item>golang</item>
+        <item>custom</item>
+        <item>randomizedalpn</item>
+        <item>randomizednoalpn</item>
+        <item>firefox_auto</item>
+        <item>firefox_55</item>
+        <item>firefox_56</item>
+        <item>firefox_63</item>
+    </string-array>
+    <string-array name="sni_spoof_injector_entry">
+        <item>@string/sni_spoof_injector_active</item>
+        <item>@string/sni_spoof_injector_passive</item>
+    </string-array>
+    <string-array name="sni_spoof_injector_value">
+        <item>active</item>
+        <item>passive</item>
+    </string-array>
 </resources>

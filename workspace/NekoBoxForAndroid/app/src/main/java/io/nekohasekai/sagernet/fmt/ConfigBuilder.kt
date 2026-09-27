@@ -38,6 +38,7 @@ import io.nekohasekai.sagernet.fmt.snell.SnellBean
 import io.nekohasekai.sagernet.fmt.snell.buildSingBoxOutboundSnellBean
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
 import io.nekohasekai.sagernet.fmt.socks.buildSingBoxOutboundSocksBean
+import io.nekohasekai.sagernet.snispoof.SniSpoofManager
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean
 import io.nekohasekai.sagernet.fmt.ssh.buildSingBoxOutboundSSHBean
 import io.nekohasekai.sagernet.fmt.tailscale.TailscaleBean
@@ -1088,6 +1089,77 @@ fun buildConfig(
                     val entryIndex = outbounds!!.indexOfLast { it.optionTag() == graph.entryTag }
                     if (entryIndex >= chunkStart) {
                         outbounds!!.add(chunkStart, outbounds!!.removeAt(entryIndex))
+                    }
+                }
+
+                // SNI Spoofing (root sidecar): point the session profile's own
+                // outbound at the loopback sidecar instead of the real server.
+                // Only direct profiles are rewritten; chains/proxy-sets and
+                // latency tests keep their original destination.
+                if (entity.id == proxy.id && !forTest && graph == null &&
+                    SniSpoofManager.isEnabledFor(entity)
+                ) {
+                    if (profileList.size == 1) {
+                        val leaf = outboundsByTag[chainTagOut]
+                        // No live sidecar session (e.g. config built for export):
+                        // keep the original destination.
+                        val sidecarPort = SniSpoofManager.loopbackPortFor(entity)
+                        if (leaf == null || sidecarPort == null) {
+                            Logs.w(
+                                "SNI Spoofing: no live sidecar session for " +
+                                    "'${entity.displayName()}', keeping original destination",
+                            )
+                        } else {
+                            val rewritten = when (leaf) {
+                                is Outbound_HTTPOptions -> {
+                                    leaf.server = LOCALHOST
+                                    leaf.server_port = sidecarPort
+                                    true
+                                }
+                                is Outbound_VMessOptions -> {
+                                    leaf.server = LOCALHOST
+                                    leaf.server_port = sidecarPort
+                                    true
+                                }
+                                is Outbound_VLESSOptions -> {
+                                    leaf.server = LOCALHOST
+                                    leaf.server_port = sidecarPort
+                                    true
+                                }
+                                is Outbound_TrojanOptions -> {
+                                    leaf.server = LOCALHOST
+                                    leaf.server_port = sidecarPort
+                                    true
+                                }
+                                is Outbound_ShadowsocksOptions -> {
+                                    leaf.server = LOCALHOST
+                                    leaf.server_port = sidecarPort
+                                    true
+                                }
+                                is Outbound_SocksOptions -> {
+                                    leaf.server = LOCALHOST
+                                    leaf.server_port = sidecarPort
+                                    true
+                                }
+                                else -> false
+                            }
+                            if (rewritten) {
+                                Logs.i(
+                                    "SNI Spoofing: rewrote outbound for " +
+                                        "'${entity.displayName()}' to $LOCALHOST:$sidecarPort",
+                                )
+                            } else {
+                                Logs.w(
+                                    "SNI Spoofing: unsupported outbound type " +
+                                        "'${leaf.type}', skipping rewrite",
+                                )
+                            }
+                        }
+                    } else {
+                        Logs.w(
+                            "SNI Spoofing: chained profiles are not supported, " +
+                                "skipping rewrite for '${entity.displayName()}'",
+                        )
                     }
                 }
 

@@ -557,6 +557,17 @@
     <string name="mux_brutal">TCP Brutal</string>
     <string name="mux_brutal_up_mbps">آپلود (Mbps)</string>
     <string name="mux_brutal_down_mbps">دانلود (Mbps)</string>
+    <string name="sni_spoof_cat">جعل SNI</string>
+    <string name="sni_spoof_enable">جعل SNI</string>
+    <string name="sni_spoof_enable_summary">نیاز به روت دارد؛ ترافیک با SNI جعلی از sidecar می‌گذرد</string>
+    <string name="sni_spoof_connect">IP:پورت جعل</string>
+    <string name="sni_spoof_connect_hint">خالی = استفاده از سرور پروفایل</string>
+    <string name="sni_spoof_fake_sni">SNI جعلی</string>
+    <string name="sni_spoof_fake_sni_hint">وقتی آدرس IP است لازم است</string>
+    <string name="sni_spoof_utls">اثرانگشت uTLS</string>
+    <string name="sni_spoof_injector">اینژکتور</string>
+    <string name="sni_spoof_injector_active">فعال</string>
+    <string name="sni_spoof_injector_passive">غیرفعال</string>
     <string name="confirm_profile_delete">تأیید حذف نمایه</string>
     <string name="language">زبان</string>
     <string name="strict_route">مسیریابی سخت‌گیرانه</string>

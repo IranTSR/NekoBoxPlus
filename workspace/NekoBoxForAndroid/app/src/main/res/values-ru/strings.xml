@@ -1167,6 +1167,17 @@
     <string name="mux_brutal">TCP Brutal</string>
     <string name="mux_brutal_up_mbps">Загрузка (Мбит/с)</string>
     <string name="mux_brutal_down_mbps">Скачивание (Мбит/с)</string>
+    <string name="sni_spoof_cat">Подмена SNI</string>
+    <string name="sni_spoof_enable">Подмена SNI</string>
+    <string name="sni_spoof_enable_summary">Нужен root; трафик идёт через sidecar с поддельным SNI</string>
+    <string name="sni_spoof_connect">IP:порт подмены</string>
+    <string name="sni_spoof_connect_hint">Пусто — используется сервер профиля</string>
+    <string name="sni_spoof_fake_sni">Ложный SNI</string>
+    <string name="sni_spoof_fake_sni_hint">Обязательно, если адрес — IP</string>
+    <string name="sni_spoof_utls">uTLS-отпечаток</string>
+    <string name="sni_spoof_injector">Инжектор</string>
+    <string name="sni_spoof_injector_active">Активный</string>
+    <string name="sni_spoof_injector_passive">Пассивный</string>
     <string name="ooc_subscription_token_invalid">Недействительный OOCv1-токен</string>
     <string name="ooc_missing_protocol">Подписке нужен протокол %s, но он не найден. Такие профили будут пропущены.</string>
     <string name="open_app">Открыть приложение</string>

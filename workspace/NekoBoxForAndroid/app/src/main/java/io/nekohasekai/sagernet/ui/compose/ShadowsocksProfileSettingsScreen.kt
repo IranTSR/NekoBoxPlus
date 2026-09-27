@@ -23,6 +23,7 @@ internal fun ShadowsocksProfileSettingsScreen() {
     val store = DataStore.profileCacheStore
     val notSet = stringResource(R.string.not_set)
     val cancel = stringResource(android.R.string.cancel)
+    val cancelLabel = cancel
     val methods = stringArrayResource(R.array.ss_enc_method_value).toList()
     val plugins = stringArrayResource(R.array.box_shadowsocks_plugins).toList()
     val muxTypeLabels = stringArrayResource(R.array.mux_type).toList()
@@ -43,6 +44,16 @@ internal fun ShadowsocksProfileSettingsScreen() {
     val muxMinStreamsTitle = stringResource(R.string.mux_min_streams)
     val brutalUpTitle = stringResource(R.string.mux_brutal_up_mbps)
     val brutalDownTitle = stringResource(R.string.mux_brutal_down_mbps)
+    val sniSpoofConnectTitle = stringResource(R.string.sni_spoof_connect)
+    val sniSpoofConnectHint = stringResource(R.string.sni_spoof_connect_hint)
+    val sniSpoofFakeSniTitle = stringResource(R.string.sni_spoof_fake_sni)
+    val sniSpoofFakeSniHint = stringResource(R.string.sni_spoof_fake_sni_hint)
+    val sniSpoofUtlsTitle = stringResource(R.string.sni_spoof_utls)
+    val sniSpoofInjectorTitle = stringResource(R.string.sni_spoof_injector)
+    val sniSpoofUtlsLabels = stringArrayResource(R.array.sni_spoof_utls_entry).toList()
+    val sniSpoofUtlsValues = stringArrayResource(R.array.sni_spoof_utls_value).toList()
+    val sniSpoofInjectorLabels = stringArrayResource(R.array.sni_spoof_injector_entry).toList()
+    val sniSpoofInjectorValues = stringArrayResource(R.array.sni_spoof_injector_value).toList()
 
     var name by remember { mutableStateOf(store.getString("name").orEmpty()) }
     var address by remember { mutableStateOf(store.getString("serverAddress").orEmpty()) }
@@ -62,6 +73,11 @@ internal fun ShadowsocksProfileSettingsScreen() {
     var muxBrutal by remember { mutableStateOf(store.getBoolean("muxBrutal", false)) }
     var muxBrutalUp by remember { mutableStateOf(store.getString("muxBrutalUpMbps") ?: "100") }
     var muxBrutalDown by remember { mutableStateOf(store.getString("muxBrutalDownMbps") ?: "100") }
+    var sniSpoofEnabled by remember { mutableStateOf(store.getBoolean("sniSpoofEnabled", false)) }
+    var sniSpoofConnect by remember { mutableStateOf(store.getString("sniSpoofConnect").orEmpty()) }
+    var sniSpoofFakeSni by remember { mutableStateOf(store.getString("sniSpoofFakeSni").orEmpty()) }
+    var sniSpoofUtls by remember { mutableStateOf(store.getString("sniSpoofUtls").orEmpty()) }
+    var sniSpoofInjector by remember { mutableStateOf(store.getString("sniSpoofInjector").orEmpty()) }
 
     fun edit(
         title: String,
@@ -230,6 +246,65 @@ internal fun ShadowsocksProfileSettingsScreen() {
                     edit(brutalDownTitle, muxBrutalDown, KeyboardType.Number) {
                         muxBrutalDown = it; store.putString("muxBrutalDownMbps", it)
                     }
+                }
+            }
+        }
+        item { ProfileCategory(R.string.sni_spoof_cat) }
+        item {
+            ProfileSwitchRow(R.drawable.ic_baseline_security_24, R.string.sni_spoof_enable,
+                sniSpoofEnabled, stringResource(R.string.sni_spoof_enable_summary),
+                dynamicSummary = false) {
+                sniSpoofEnabled = it; store.putBoolean("sniSpoofEnabled", it)
+            }
+        }
+        if (sniSpoofEnabled) {
+            item {
+                ProfileActionRow(R.drawable.ic_hardware_router, R.string.sni_spoof_connect,
+                    sniSpoofConnect.ifBlank { sniSpoofConnectHint }) {
+                    edit(sniSpoofConnectTitle, sniSpoofConnect) {
+                        sniSpoofConnect = it; store.putString("sniSpoofConnect", it)
+                    }
+                }
+            }
+            item {
+                ProfileActionRow(R.drawable.ic_action_copyright, R.string.sni_spoof_fake_sni,
+                    sniSpoofFakeSni.ifBlank { sniSpoofFakeSniHint }) {
+                    edit(sniSpoofFakeSniTitle, sniSpoofFakeSni) {
+                        sniSpoofFakeSni = it; store.putString("sniSpoofFakeSni", it)
+                    }
+                }
+            }
+            item {
+                val selected = sniSpoofUtlsValues.indexOf(sniSpoofUtls).coerceAtLeast(0)
+                ProfileActionRow(R.drawable.ic_baseline_fingerprint_24, R.string.sni_spoof_utls,
+                    sniSpoofUtlsLabels.getOrElse(selected) { summary(sniSpoofUtls) }) {
+                    context.showComposeSingleChoiceDialog(
+                        title = sniSpoofUtlsTitle,
+                        items = sniSpoofUtlsLabels,
+                        selectedIndex = selected,
+                        negativeButton = cancelLabel,
+                        onItemSelected = {
+                            sniSpoofUtls = sniSpoofUtlsValues[it]
+                            store.putString("sniSpoofUtls", sniSpoofUtls)
+                        },
+                    )
+                }
+            }
+            item {
+                val selected = sniSpoofInjectorValues.indexOf(sniSpoofInjector).coerceAtLeast(0)
+                ProfileActionRow(R.drawable.ic_baseline_compare_arrows_24,
+                    R.string.sni_spoof_injector,
+                    sniSpoofInjectorLabels.getOrElse(selected) { summary(sniSpoofInjector) }) {
+                    context.showComposeSingleChoiceDialog(
+                        title = sniSpoofInjectorTitle,
+                        items = sniSpoofInjectorLabels,
+                        selectedIndex = selected,
+                        negativeButton = cancelLabel,
+                        onItemSelected = {
+                            sniSpoofInjector = sniSpoofInjectorValues[it]
+                            store.putString("sniSpoofInjector", sniSpoofInjector)
+                        },
+                    )
                 }
             }
         }

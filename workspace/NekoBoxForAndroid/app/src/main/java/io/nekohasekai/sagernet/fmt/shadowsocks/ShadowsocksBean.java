@@ -30,6 +30,13 @@ public class ShadowsocksBean extends AbstractBean {
     public Integer muxBrutalUpMbps;
     public Integer muxBrutalDownMbps;
 
+    // SNI Spoofing (root sidecar, per-profile)
+    public Boolean sniSpoofEnabled;
+    public String sniSpoofConnect;   // host:port override, blank = server address
+    public String sniSpoofFakeSni;   // decoy SNI, blank = sidecar default
+    public String sniSpoofUtls;      // utls fingerprint, blank = chrome
+    public String sniSpoofInjector;  // injector mode, blank = active
+
     @Override
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
@@ -50,11 +57,17 @@ public class ShadowsocksBean extends AbstractBean {
         if (muxBrutal == null) muxBrutal = false;
         if (muxBrutalUpMbps == null) muxBrutalUpMbps = 100;
         if (muxBrutalDownMbps == null) muxBrutalDownMbps = 100;
+
+        if (sniSpoofEnabled == null) sniSpoofEnabled = false;
+        if (sniSpoofConnect == null) sniSpoofConnect = "";
+        if (sniSpoofFakeSni == null) sniSpoofFakeSni = "";
+        if (sniSpoofUtls == null) sniSpoofUtls = "";
+        if (sniSpoofInjector == null) sniSpoofInjector = "";
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(5);
+        output.writeInt(6);
         super.serialize(output);
         output.writeString(method);
         output.writeString(password);
@@ -73,6 +86,12 @@ public class ShadowsocksBean extends AbstractBean {
         output.writeBoolean(muxBrutal);
         output.writeInt(muxBrutalUpMbps);
         output.writeInt(muxBrutalDownMbps);
+        // v6: SNI Spoofing (root sidecar, per-profile)
+        output.writeBoolean(sniSpoofEnabled);
+        output.writeString(sniSpoofConnect);
+        output.writeString(sniSpoofFakeSni);
+        output.writeString(sniSpoofUtls);
+        output.writeString(sniSpoofInjector);
     }
 
     @Override
@@ -101,6 +120,14 @@ public class ShadowsocksBean extends AbstractBean {
             muxBrutal = input.readBoolean();
             muxBrutalUpMbps = input.readInt();
             muxBrutalDownMbps = input.readInt();
+        }
+        // v6: SNI Spoofing (root sidecar, per-profile)
+        if (version >= 6) {
+            sniSpoofEnabled = input.readBoolean();
+            sniSpoofConnect = input.readString();
+            sniSpoofFakeSni = input.readString();
+            sniSpoofUtls = input.readString();
+            sniSpoofInjector = input.readString();
         }
     }
 

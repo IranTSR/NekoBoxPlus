@@ -99,6 +99,13 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     private val kcpCwndMultiplier = pbm.add(PreferenceBinding(Type.TextToInt, "kcpCwndMultiplier"))
     private val kcpMaxSendingWindow = pbm.add(PreferenceBinding(Type.TextToInt, "kcpMaxSendingWindow"))
 
+    // SNI Spoofing (root sidecar, per-profile)
+    private val sniSpoofEnabled = pbm.add(PreferenceBinding(Type.Bool, "sniSpoofEnabled"))
+    private val sniSpoofConnect = pbm.add(PreferenceBinding(Type.Text, "sniSpoofConnect"))
+    private val sniSpoofFakeSni = pbm.add(PreferenceBinding(Type.Text, "sniSpoofFakeSni"))
+    private val sniSpoofUtls = pbm.add(PreferenceBinding(Type.Text, "sniSpoofUtls"))
+    private val sniSpoofInjector = pbm.add(PreferenceBinding(Type.Text, "sniSpoofInjector"))
+
     override fun StandardV2RayBean.init() {
         this@StandardV2RaySettingsActivity.uuid.fieldName = "uuid"
         this@StandardV2RaySettingsActivity.username.disable = this !is HttpBean

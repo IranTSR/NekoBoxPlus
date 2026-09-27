@@ -28,6 +28,7 @@ import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.plugin.PluginManager
+import io.nekohasekai.sagernet.snispoof.SniSpoofManager
 import io.nekohasekai.sagernet.utils.DefaultNetworkListener
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
@@ -817,6 +818,10 @@ class BaseService {
 
         fun killProcesses() {
             Logs.d("Service cleanup started")
+            // SNI Spoofing: stop the root sidecar (bounded blocking calls; this runs
+            // on Dispatchers.IO). Never let sidecar cleanup break service teardown.
+            runCatching { SniSpoofManager.stop() }
+                .onFailure { Logs.w("SNI Spoofing stop failed", it) }
             stopCoreRecovery()
             data.connectionRecovery?.close()
             data.connectionRecovery = null
@@ -1328,6 +1333,21 @@ class BaseService {
                         SagerNet.application.nativeInterface.setWifiRuleMonitoringEnabled(hasActiveWifiRules)
                         SagerNet.application.nativeInterface.unregisterWifiStateListener()
                         preInit()
+
+                        // SNI Spoofing (root sidecar): start before proxy.init()
+                        // so buildConfig() can point the outbound at the loopback sidecar.
+                        if (SniSpoofManager.isEnabledFor(profile)) {
+                            try {
+                                withContext(Dispatchers.IO) {
+                                    SniSpoofManager.startForRun(this@Interface as Service, profile)
+                                }
+                            } catch (e: SniSpoofManager.SniSpoofException) {
+                                Logs.e("SNI Spoofing failed to start", e)
+                                stopRunner(false, e.message)
+                                return@withLock
+                            }
+                        }
+
                         proxy.init()
                         currentCoroutineContext().ensureActive()
                         if (!ServiceLifecyclePolicy.startupProfileStillDesired(

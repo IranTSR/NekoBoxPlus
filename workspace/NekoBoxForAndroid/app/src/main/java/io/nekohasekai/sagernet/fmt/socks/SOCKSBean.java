@@ -51,6 +51,13 @@ public class SOCKSBean extends AbstractBean {
     public String username;
     public String password;
 
+    // SNI Spoofing (root sidecar, per-profile)
+    public Boolean sniSpoofEnabled;
+    public String sniSpoofConnect;   // host:port override, blank = server address
+    public String sniSpoofFakeSni;   // decoy SNI, blank = sidecar default
+    public String sniSpoofUtls;      // utls fingerprint, blank = chrome
+    public String sniSpoofInjector;  // injector mode, blank = active
+
     public static final int PROTOCOL_SOCKS4 = 0;
     public static final int PROTOCOL_SOCKS4A = 1;
     public static final int PROTOCOL_SOCKS5 = 2;
@@ -69,16 +76,28 @@ public class SOCKSBean extends AbstractBean {
         if (username == null) username = "";
         if (password == null) password = "";
         if (sUoT == null) sUoT = false;
+
+        if (sniSpoofEnabled == null) sniSpoofEnabled = false;
+        if (sniSpoofConnect == null) sniSpoofConnect = "";
+        if (sniSpoofFakeSni == null) sniSpoofFakeSni = "";
+        if (sniSpoofUtls == null) sniSpoofUtls = "";
+        if (sniSpoofInjector == null) sniSpoofInjector = "";
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(2);
+        output.writeInt(3);
         super.serialize(output);
         output.writeInt(protocol);
         output.writeString(username);
         output.writeString(password);
         output.writeBoolean(sUoT);
+        // v3: SNI Spoofing (root sidecar, per-profile)
+        output.writeBoolean(sniSpoofEnabled);
+        output.writeString(sniSpoofConnect);
+        output.writeString(sniSpoofFakeSni);
+        output.writeString(sniSpoofUtls);
+        output.writeString(sniSpoofInjector);
     }
 
     @Override
@@ -92,6 +111,14 @@ public class SOCKSBean extends AbstractBean {
         password = input.readString();
         if (version >= 2) {
             sUoT = input.readBoolean();
+        }
+        // v3: SNI Spoofing (root sidecar, per-profile)
+        if (version >= 3) {
+            sniSpoofEnabled = input.readBoolean();
+            sniSpoofConnect = input.readString();
+            sniSpoofFakeSni = input.readString();
+            sniSpoofUtls = input.readString();
+            sniSpoofInjector = input.readString();
         }
     }
 
