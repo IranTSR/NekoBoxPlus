@@ -276,7 +276,7 @@ object SniSpoofManager {
      * The optional per-profile override (IP:port or host:port) wins; otherwise the
      * profile's own server address and port are used, matching the CLI's `-connect`.
      */
-    internal fun connectTarget(settings: SniSpoofSettings): String {
+    private fun connectTarget(settings: SniSpoofSettings): String {
         val override = settings.connect?.trim().orEmpty()
         if (override.isNotEmpty()) return override
         return "${settings.serverAddress}:${settings.serverPort}"
@@ -330,7 +330,7 @@ object SniSpoofManager {
     /**
      * Builds the exact argv for the sidecar.
      */
-    internal fun buildArgs(settings: SniSpoofSettings, port: Int): List<String> {
+    private fun buildArgs(settings: SniSpoofSettings, port: Int): List<String> {
         val args = mutableListOf(
             "-listen", "$LOCALHOST:$port",
             "-connect", connectTarget(settings),

@@ -1151,7 +1151,7 @@ fun buildConfig(
                             } else {
                                 Logs.w(
                                     "SNI Spoofing: unsupported outbound type " +
-                                        "'${leaf.type}', skipping rewrite",
+                                        "'${leaf::class.simpleName}', skipping rewrite",
                                 )
                             }
                         }
