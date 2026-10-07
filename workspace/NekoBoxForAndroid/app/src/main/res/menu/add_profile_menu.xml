@@ -91,6 +91,9 @@
                         android:id="@+id/action_new_openconnect"
                         android:title="@string/action_openconnect" />
                     <item
+                        android:id="@+id/action_new_bepass"
+                        android:title="@string/action_bepass" />
+                    <item
                         android:id="@+id/action_new_snell"
                         android:title="@string/action_snell" />
                     <item

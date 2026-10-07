@@ -16,7 +16,7 @@ import io.nekohasekai.sagernet.fmt.gson.GsonConverters
 
 @Database(
     entities = [ProxyGroup::class, ProxyEntity::class, RuleEntity::class],
-    version = 28,
+    version = 29,
     autoMigrations = [
         AutoMigration(from = 3, to = 4),
         AutoMigration(from = 4, to = 5),
@@ -287,6 +287,12 @@ abstract class SagerDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_28_29 = object : Migration(28, 29) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.addColumnIfMissing("proxy_entities", "bepassBean", "BLOB")
+            }
+        }
+
         private fun SupportSQLiteDatabase.addColumnIfMissing(
             table: String,
             column: String,
@@ -331,6 +337,7 @@ abstract class SagerDatabase : RoomDatabase() {
                     MIGRATION_25_26,
                     MIGRATION_26_27,
                     MIGRATION_27_28,
+                    MIGRATION_28_29,
                 )
                 .setJournalMode(JournalMode.TRUNCATE)
                 .allowMainThreadQueries()

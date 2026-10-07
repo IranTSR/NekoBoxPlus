@@ -130,6 +130,7 @@ import io.nekohasekai.sagernet.ui.profile.MasterDnsVPNSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.MasqueSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.MieruSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.NaiveSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.BepassSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.OpenConnectSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.OpenVPNSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ProxySetSettingsActivity
@@ -1239,6 +1240,10 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             R.id.action_new_openconnect -> {
                 startActivity(Intent(requireActivity(), OpenConnectSettingsActivity::class.java))
+            }
+
+            R.id.action_new_bepass -> {
+                startActivity(Intent(requireActivity(), BepassSettingsActivity::class.java))
             }
 
             R.id.action_new_snell -> {

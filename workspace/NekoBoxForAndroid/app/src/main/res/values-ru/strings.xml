@@ -1983,4 +1983,31 @@
     <string name="subscription_xray_balancers">Балансировщики Xray в подписках</string>
     <string name="subscription_xray_balancers_convert">Преобразовать в набор прокси</string>
     <string name="subscription_xray_balancers_split">Разделить на отдельные профили</string>
+    <string name="action_bepass" translatable="false">Bepass</string>
+    <string name="bepass_fragmentation">Фрагментация TLS</string>
+    <string name="bepass_tls_header_length">Длина заголовка TLS</string>
+    <string name="bepass_tls_padding_enabled">Включить TLS-паддинг</string>
+    <string name="bepass_tls_padding_size_min">Мин. размер TLS-паддинга</string>
+    <string name="bepass_tls_padding_size_max">Макс. размер TLS-паддинга</string>
+    <string name="bepass_chunks_before_sni_min">Мин. размер чанка до SNI</string>
+    <string name="bepass_chunks_before_sni_max">Макс. размер чанка до SNI</string>
+    <string name="bepass_sni_chunks_min">Мин. размер чанка SNI</string>
+    <string name="bepass_sni_chunks_max">Макс. размер чанка SNI</string>
+    <string name="bepass_chunks_after_sni_min">Мин. размер чанка после SNI</string>
+    <string name="bepass_chunks_after_sni_max">Макс. размер чанка после SNI</string>
+    <string name="bepass_delay_between_chunks_min">Мин. задержка между чанками (мс)</string>
+    <string name="bepass_delay_between_chunks_max">Макс. задержка между чанками (мс)</string>
+    <string name="bepass_dns">DNS</string>
+    <string name="bepass_remote_dns_addr">Адрес удалённого DNS</string>
+    <string name="bepass_dns_cache_ttl">TTL кэша DNS</string>
+    <string name="bepass_dns_request_timeout">Таймаут DNS-запроса (сек)</string>
+    <string name="bepass_dns_fragmentation">Включить фрагментацию DNS</string>
+    <string name="bepass_worker">Cloudflare Worker</string>
+    <string name="bepass_worker_enabled">Включить worker</string>
+    <string name="bepass_worker_address">Адрес worker</string>
+    <string name="bepass_worker_ip_port">IP:порт worker</string>
+    <string name="bepass_worker_dns_only">Worker только для DNS</string>
+    <string name="bepass_advanced">Дополнительно</string>
+    <string name="bepass_low_level_sockets">Включить низкоуровневые сокеты</string>
+    <string name="bepass_start_failed">Не удалось запустить Bepass</string>
 </resources>

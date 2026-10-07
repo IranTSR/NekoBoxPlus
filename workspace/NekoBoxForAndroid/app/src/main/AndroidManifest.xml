@@ -507,6 +507,9 @@
             android:name="io.nekohasekai.sagernet.ui.profile.OpenConnectSettingsActivity"
             android:configChanges="uiMode" />
         <activity
+            android:name="io.nekohasekai.sagernet.ui.profile.BepassSettingsActivity"
+            android:configChanges="uiMode" />
+        <activity
             android:name="io.nekohasekai.sagernet.ui.profile.HttpSettingsActivity"
             android:configChanges="uiMode" />
         <activity

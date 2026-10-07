@@ -25,6 +25,7 @@ object TypeMap : HashMap<String, Int>() {
         this["tailscale"] = ProxyEntity.TYPE_TAILSCALE
         this["openvpn"] = ProxyEntity.TYPE_OPENVPN
         this["openconnect"] = ProxyEntity.TYPE_OPENCONNECT
+        this["bepass"] = ProxyEntity.TYPE_BEPASS
         this["snell"] = ProxyEntity.TYPE_SNELL
         this["byedpi"] = ProxyEntity.TYPE_BYEDPI
         this["anytls"] = ProxyEntity.TYPE_ANYTLS

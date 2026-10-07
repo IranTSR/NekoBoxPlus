@@ -2018,4 +2018,31 @@
     <string name="subscription_xray_balancers">Subscription Xray Balancers</string>
     <string name="subscription_xray_balancers_convert">Convert to the Proxy Set</string>
     <string name="subscription_xray_balancers_split">Split into separate profiles</string>
+    <string name="action_bepass" translatable="false">Bepass</string>
+    <string name="bepass_fragmentation">TLS fragmentation</string>
+    <string name="bepass_tls_header_length">TLS header length</string>
+    <string name="bepass_tls_padding_enabled">Enable TLS padding</string>
+    <string name="bepass_tls_padding_size_min">TLS padding size min</string>
+    <string name="bepass_tls_padding_size_max">TLS padding size max</string>
+    <string name="bepass_chunks_before_sni_min">Chunk size before SNI min</string>
+    <string name="bepass_chunks_before_sni_max">Chunk size before SNI max</string>
+    <string name="bepass_sni_chunks_min">SNI chunk size min</string>
+    <string name="bepass_sni_chunks_max">SNI chunk size max</string>
+    <string name="bepass_chunks_after_sni_min">Chunk size after SNI min</string>
+    <string name="bepass_chunks_after_sni_max">Chunk size after SNI max</string>
+    <string name="bepass_delay_between_chunks_min">Delay between chunks min (ms)</string>
+    <string name="bepass_delay_between_chunks_max">Delay between chunks max (ms)</string>
+    <string name="bepass_dns">DNS</string>
+    <string name="bepass_remote_dns_addr">Remote DNS address</string>
+    <string name="bepass_dns_cache_ttl">DNS cache TTL</string>
+    <string name="bepass_dns_request_timeout">DNS request timeout (sec)</string>
+    <string name="bepass_dns_fragmentation">Enable DNS fragmentation</string>
+    <string name="bepass_worker">Cloudflare Worker</string>
+    <string name="bepass_worker_enabled">Enable worker</string>
+    <string name="bepass_worker_address">Worker address</string>
+    <string name="bepass_worker_ip_port">Worker IP:port</string>
+    <string name="bepass_worker_dns_only">Worker DNS only</string>
+    <string name="bepass_advanced">Advanced</string>
+    <string name="bepass_low_level_sockets">Enable low-level sockets</string>
+    <string name="bepass_start_failed">Failed to start Bepass</string>
 </resources>

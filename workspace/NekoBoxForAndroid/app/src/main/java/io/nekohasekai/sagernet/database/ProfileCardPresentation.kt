@@ -170,6 +170,7 @@ private fun ProxyEntity.shortProfileCardType(): String = when (type) {
     ProxyEntity.TYPE_MASQUE -> "MASQ"
     ProxyEntity.TYPE_DIRECT -> "Dir"
     ProxyEntity.TYPE_TAILSCALE -> "Tail"
+    ProxyEntity.TYPE_BEPASS -> "Bepass"
     ProxyEntity.TYPE_PROXY_SET ->
         if (proxySetBean?.mode == ProxySetBean.MODE_URL_TEST) "URLT" else "Sel"
     ProxyEntity.TYPE_CHAIN -> "Chain"

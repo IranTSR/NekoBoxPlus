@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.aidl.TrafficDataBatch
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
+import io.nekohasekai.sagernet.bg.asProxyInstance
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.fmt.TAG_BYPASS
@@ -54,7 +55,7 @@ class TrafficLooper(
         val traffic = access.withLock {
             trafficUpdater?.updateAll()
             buildMap {
-                data.proxy?.config?.trafficMap?.forEach { (_, entities) ->
+                data.proxy.asProxyInstance()?.config?.trafficMap?.forEach { (_, entities) ->
                     for (entity in entities) {
                         val item = idMap[entity.id] ?: continue
                         entity.rx = item.rx
@@ -122,7 +123,7 @@ class TrafficLooper(
             tag = selectorNowFakeTag
             ignore = true
             if (DataStore.profileTrafficStatistics && DataStore.profileTrafficUpdateInterval > 0) {
-                data.proxy?.config?.trafficMap?.get(tag)?.firstOrNull()?.let {
+                data.proxy.asProxyInstance()?.config?.trafficMap?.get(tag)?.firstOrNull()?.let {
                     it.rx = rx
                     it.tx = tx
                     sc.launch {
@@ -155,7 +156,7 @@ class TrafficLooper(
                     }
                 }
             }
-            data.proxy?.config?.trafficMap?.values?.forEach { entities ->
+            data.proxy.asProxyInstance()?.config?.trafficMap?.values?.forEach { entities ->
                 entities.forEach { entity ->
                     if (entity.id in targetIds) {
                         entity.tx = 0L
@@ -242,7 +243,7 @@ class TrafficLooper(
                 continue
             }
 
-            val proxy = data.proxy
+            val proxy = data.proxy.asProxyInstance()
             if (proxy == null || !proxy.isInitialized()) {
                 delay(delayMs)
                 continue

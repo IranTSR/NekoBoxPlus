@@ -8,6 +8,7 @@ import com.esotericsoftware.kryo.io.ByteBufferOutput;
 import java.io.ByteArrayOutputStream;
 
 import io.nekohasekai.sagernet.database.SubscriptionBean;
+import io.nekohasekai.sagernet.fmt.bepass.BepassBean;
 import io.nekohasekai.sagernet.fmt.http.HttpBean;
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean;
 import io.nekohasekai.sagernet.fmt.internal.ChainBean;
@@ -223,6 +224,12 @@ public class KryoConverters {
     public static OpenConnectBean openConnectDeserialize(byte[] bytes) {
         if (JavaUtil.isEmpty(bytes)) return null;
         return deserialize(new OpenConnectBean(), bytes);
+    }
+
+    @TypeConverter
+    public static BepassBean bepassDeserialize(byte[] bytes) {
+        if (JavaUtil.isEmpty(bytes)) return null;
+        return deserialize(new BepassBean(), bytes);
     }
 
     @TypeConverter

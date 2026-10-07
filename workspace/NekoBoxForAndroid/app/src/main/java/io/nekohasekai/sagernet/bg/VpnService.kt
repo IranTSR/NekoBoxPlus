@@ -14,6 +14,7 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.fmt.LOCALHOST
+import io.nekohasekai.sagernet.fmt.TunAddresses
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.ui.VpnRequestActivity
@@ -134,6 +135,24 @@ class VpnService :
         override fun getLocalizedMessage() = getString(R.string.reboot_required)
     }
 
+    /**
+     * Builds a minimal IPv4-only TUN for the native bepass engine and returns
+     * its ParcelFileDescriptor. The caller owns the descriptor.
+     */
+    fun startBepassTun(): ParcelFileDescriptor {
+        metered = DataStore.meteredNetwork
+        val builder = Builder()
+            .setConfigureIntent(SagerNet.configureIntent(this))
+            .setSession(getString(R.string.app_name))
+            .setMtu(BepassInstance.TUN_MTU)
+        builder.addAddress(TunAddresses.INET4_CLIENT, 30)
+        builder.addDnsServer(TunAddresses.INET4_ROUTER)
+        builder.addRoute("0.0.0.0", 0)
+        updateUnderlyingNetwork(builder)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) builder.setMetered(metered)
+        return builder.establish() ?: throw NullConnectionException()
+    }
+
     fun startVpn(
         tunPayloadJson: String,
         @Suppress("UNUSED_PARAMETER") tunPlatformOptionsJson: String,
@@ -173,9 +192,9 @@ class VpnService :
         val workaroundSYSTEM = false // DataStore.tunImplementation == TunImplementation.SYSTEM
         val needBypassRootUid =
             workaroundSYSTEM ||
-                data.proxy!!.config.trafficMap.values.any {
+                (data.proxy.asProxyInstance()?.config?.trafficMap?.values?.any {
                     it[0].hysteriaBean?.protocol == HysteriaBean.PROTOCOL_FAKETCP
-                }
+                } == true)
 
         // List of all per-rule packages where outbound is not Bypass.
         // This adds those packages to the TUN package list and enables user-defined rules for them.

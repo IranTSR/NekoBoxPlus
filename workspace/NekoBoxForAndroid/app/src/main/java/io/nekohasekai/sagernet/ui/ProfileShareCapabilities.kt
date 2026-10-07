@@ -11,7 +11,8 @@ internal data class ProfileShareCapabilities(
         fun from(entity: ProxyEntity) = ProfileShareCapabilities(
             links = entity.haveLink(),
             standardLinks = entity.haveStandardLink(),
-            configuration = entity.nekoBean == null,
+            // bepass has no sing-box config to export (native engine owns the TUN)
+            configuration = entity.nekoBean == null && entity.bepassBean == null,
         )
     }
 }

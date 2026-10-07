@@ -26,6 +26,7 @@ import io.nekohasekai.sagernet.database.AppData
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.RuleEntity
+import io.nekohasekai.sagernet.fmt.bepass.BepassBean
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.plugin.PluginManager
 import io.nekohasekai.sagernet.utils.DefaultNetworkListener
@@ -89,7 +90,7 @@ class BaseService {
 
     class Data internal constructor(private val service: Interface) {
         var state = State.Stopped
-        var proxy: ProxyInstance? = null
+        var proxy: AbstractInstance? = null
         var notification: ServiceNotification? = null
         @Volatile
         internal var connectionRecovery: ConnectionRecoveryQueue? = null
@@ -195,7 +196,8 @@ class BaseService {
         override val coroutineContext = Dispatchers.Main.immediate + Job()
 
         override fun getState(): Int = (data?.state ?: State.Idle).ordinal
-        override fun getProfileName(): String = data?.proxy?.displayProfileName ?: "Idle"
+        override fun getProfileName(): String = data?.proxy.asProxyInstance()?.displayProfileName
+            ?: data?.proxy.activeProfile?.displayName() ?: "Idle"
 
         override fun registerCallback(cb: ISagerNetServiceCallback, id: Int) {
             if (id == SagerConnection.CONNECTION_ID_RESTART_BG) {
@@ -239,13 +241,13 @@ class BaseService {
 
         override fun resetTraffic(profileIds: LongArray) {
             launch(Dispatchers.Default) {
-                data?.proxy?.looper?.resetTraffic(profileIds)
+                data?.proxy.asProxyInstance()?.looper?.resetTraffic(profileIds)
             }
         }
 
         override fun urlTest(automatic: Boolean): Int {
             val data = data ?: error("core not started")
-            val box = data.proxy?.box ?: error("core not started")
+            val box = data.proxy.asProxyInstance()?.box ?: error("core not started")
             val retryPlan = AutomaticConnectionTestPolicy.retryPlan(
                 automatic,
                 DataStore.connectionTestAttempts,
@@ -310,7 +312,7 @@ class BaseService {
                         )
                         return@withLock
                     }
-                    val box = if (state == State.Connected) currentData?.proxy?.box else null
+                    val box = if (state == State.Connected) currentData?.proxy.asProxyInstance()?.box else null
                     val listener = object : SpeedTestListener {
                         override fun update(status: SpeedTestStatus) {
                             publishSpeedTestStatus(status.toSpeedTestData())
@@ -395,18 +397,18 @@ class BaseService {
         )
 
         override fun currentClashMode(): String {
-            val box = data?.proxy?.box ?: return ""
+            val box = data?.proxy.asProxyInstance()?.box ?: return ""
             return Libcore.currentClashMode(box)
         }
 
         override fun clashModeList(): String {
-            val box = data?.proxy?.box ?: return "[]"
+            val box = data?.proxy.asProxyInstance()?.box ?: return "[]"
             return Libcore.clashModeList(box)
         }
 
         override fun setClashMode(mode: String) {
             val data = data ?: return
-            val box = data.proxy?.box ?: return
+            val box = data.proxy.asProxyInstance()?.box ?: return
             val oldMode = Libcore.currentClashMode(box)
             Libcore.setClashMode(box, mode)
             val newMode = Libcore.currentClashMode(box)
@@ -419,7 +421,7 @@ class BaseService {
             val appLevel = AppLogLevel.entries.firstOrNull { it.singBoxName == level && it.outputEnabled == enabled }
                 ?: error("Unknown log level: $level")
             AppLogLevelController.set(appLevel)
-            val box = data?.proxy?.box
+            val box = data?.proxy.asProxyInstance()?.box
             if (box == null) {
                 Libcore.setLogLevel(level, enabled)
             } else {
@@ -428,7 +430,7 @@ class BaseService {
         }
 
         override fun adblockStats(): String {
-            val box = data?.proxy?.box ?: return Libcore.adblockStatsFromCache(Param.LIBCORE_ADBLOCK_DB_FILE_PATH)
+            val box = data?.proxy.asProxyInstance()?.box ?: return Libcore.adblockStatsFromCache(Param.LIBCORE_ADBLOCK_DB_FILE_PATH)
             return Libcore.adblockStats(box)
         }
 
@@ -442,7 +444,7 @@ class BaseService {
         }
 
         override fun adblockFilterMetadataMap(joinedUrls: String): String {
-            val box = data?.proxy?.box
+            val box = data?.proxy.asProxyInstance()?.box
             return if (box != null) {
                 Libcore.adblockFilterMetadataMapForInstance(box, joinedUrls, Param.LIBCORE_ADBLOCK_DB_FILE_PATH)
             } else {
@@ -452,7 +454,7 @@ class BaseService {
 
         override fun adblockStoredFilterVersion(url: String): String {
             if (url.isBlank()) return ""
-            val box = data?.proxy?.box
+            val box = data?.proxy.asProxyInstance()?.box
             val json = if (box != null) {
                 Libcore.adblockStoredFilterVersionsForInstance(box, url, Param.LIBCORE_ADBLOCK_DB_FILE_PATH)
             } else {
@@ -465,7 +467,7 @@ class BaseService {
         }
 
         override fun adblockStoredFilterVersions(joinedUrls: String): String {
-            val box = data?.proxy?.box
+            val box = data?.proxy.asProxyInstance()?.box
             return if (box != null) {
                 Libcore.adblockStoredFilterVersionsForInstance(box, joinedUrls, Param.LIBCORE_ADBLOCK_DB_FILE_PATH)
             } else {
@@ -475,7 +477,7 @@ class BaseService {
 
         override fun adblockPreCacheFilter(url: String): String {
             if (url.isBlank()) return ""
-            val box = data?.proxy?.box
+            val box = data?.proxy.asProxyInstance()?.box
             val json = if (box != null) {
                 Libcore.adblockPreCacheFiltersForInstance(box, url, Param.LIBCORE_ADBLOCK_DB_FILE_PATH)
             } else {
@@ -490,7 +492,7 @@ class BaseService {
         }
 
         override fun adblockPreCacheFilters(joinedUrls: String): String {
-            val box = data?.proxy?.box
+            val box = data?.proxy.asProxyInstance()?.box
             return if (box != null) {
                 Libcore.adblockPreCacheFiltersForInstance(box, joinedUrls, Param.LIBCORE_ADBLOCK_DB_FILE_PATH)
             } else {
@@ -503,7 +505,7 @@ class BaseService {
         }
 
         override fun adblockDeleteCachedFilters(joinedUrls: String) {
-            val box = data?.proxy?.box
+            val box = data?.proxy.asProxyInstance()?.box
             if (box != null) {
                 Libcore.adblockDeleteCachedFiltersForInstance(box, joinedUrls, Param.LIBCORE_ADBLOCK_DB_FILE_PATH)
             } else {
@@ -514,7 +516,7 @@ class BaseService {
         override fun adblockReloadEngine() {
             // Only the running box has a live engine to reload; when no box is
             // bound there is nothing to do (the next start reads the database).
-            val box = data?.proxy?.box ?: return
+            val box = data?.proxy.asProxyInstance()?.box ?: return
             runCatching { Libcore.adblockReloadEngine(box) }
         }
 
@@ -523,14 +525,14 @@ class BaseService {
         override fun hasCoreProfilerSnapshot(): Boolean = Libcore.hasCoreProfilerSnapshot()
 
         override fun performLibcoreGcSweep() {
-            if (data?.proxy?.isInitialized() != true) {
+            if (data?.proxy.asProxyInstance()?.isInitialized() != true) {
                 error("Service is not running")
             }
             Libcore.performLibcoreGCSweep()
         }
 
         override fun triggerLibcoreCrash(crashType: String) {
-            if (data?.proxy?.isInitialized() != true) {
+            if (data?.proxy.asProxyInstance()?.isInitialized() != true) {
                 error("Service is not running")
             }
             when (crashType) {
@@ -550,7 +552,7 @@ class BaseService {
         }
 
         override fun startCoreProfiling(mode: Int) {
-            if (data?.proxy?.isInitialized() != true) {
+            if (data?.proxy.asProxyInstance()?.isInitialized() != true) {
                 error("Core is not started yet")
             }
             Libcore.startCoreProfiling(mode)
@@ -602,7 +604,7 @@ class BaseService {
 
         fun reload(selectedProxy: Long = DataStore.selectedProxy) {
             val restartCause = ServiceLifecyclePolicy.profileReloadCause(
-                runningProfileId = data.proxy?.profile?.id,
+                runningProfileId = data.proxy.activeProfile?.id,
                 selectedProfileId = selectedProxy,
             )
             data.desiredProfileId = selectedProxy
@@ -622,10 +624,11 @@ class BaseService {
                 }
                 ServiceLifecyclePolicy.ReloadAction.SelectorReload -> {
                     val ent = AppData.profiles.getById(selectedProxy)
-                    val tag = data.proxy!!.config.profileTagMap[ent?.id] ?: ""
-                    if (tag.isNotBlank() && ent != null) {
+                    // selector reload is a sing-box-only feature
+                    val proxy = data.proxy.asProxyInstance()
+                    val tag = proxy?.config?.profileTagMap?.get(ent?.id) ?: ""
+                    if (tag.isNotBlank() && ent != null && proxy != null) {
                         // select from GUI
-                        val proxy = data.proxy!!
                         runBlocking {
                             proxy.looper?.pauseUpdates {
                                 proxy.box.selectOutbound(tag)
@@ -654,11 +657,11 @@ class BaseService {
         }
 
         fun canReloadSelector(selectedProxy: Long = DataStore.selectedProxy): Boolean {
-            if ((data.proxy?.config?.selectorGroupId ?: -1L) < 0) return false
+            if ((data.proxy.asProxyInstance()?.config?.selectorGroupId ?: -1L) < 0) return false
             val ent = AppData.profiles.getById(selectedProxy) ?: return false
             val tmpBox = ProxyInstance(ent)
             tmpBox.buildConfigTmp()
-            if (tmpBox.lastSelectorGroupId == data.proxy?.lastSelectorGroupId) {
+            if (tmpBox.lastSelectorGroupId == data.proxy.asProxyInstance()?.lastSelectorGroupId) {
                 return true
             }
             return false
@@ -777,25 +780,30 @@ class BaseService {
             }
         }
 
-        private fun closeProxyInstance(proxy: ProxyInstance) {
-            runBlocking(Dispatchers.Default) {
-                data.binder.stopSpeedTestAndWait()
-            }
-            runBlocking {
-                proxy.looper?.stop()
-                proxy.looper = null
+        private fun closeProxyInstance(proxy: AbstractInstance) {
+            val singBox = proxy.asProxyInstance()
+            if (singBox != null) {
+                runBlocking(Dispatchers.Default) {
+                    data.binder.stopSpeedTestAndWait()
+                }
+                runBlocking {
+                    singBox.looper?.stop()
+                    singBox.looper = null
+                }
             }
             val profilingShutdown = Libcore.coreProfilingRunning()
             if (profilingShutdown) {
                 runCatching { Libcore.prepareCoreProfilerShutdown() }.onFailure { Logs.w(it) }
             }
-            runBlocking {
-                proxy.syncMasqueConfigFromCache(disableRecreate = true, respectRecreate = false)
+            if (singBox != null) {
+                runBlocking {
+                    singBox.syncMasqueConfigFromCache(disableRecreate = true, respectRecreate = false)
+                }
             }
             Logs.d("Closing native proxy instance")
             var closeCompleted = false
             try {
-                proxy.close(SERVICE_CLOSE_TIMEOUT_MS)
+                if (singBox != null) singBox.close(SERVICE_CLOSE_TIMEOUT_MS) else proxy.close()
                 closeCompleted = true
                 Logs.d("Native proxy instance closed")
             } finally {
@@ -1016,7 +1024,7 @@ class BaseService {
         }
 
         fun resetCoreNetwork() {
-            val proxy = data.proxy
+            val proxy = data.proxy.asProxyInstance()
             if (proxy != null && proxy.isInitialized()) {
                 runCatching {
                     proxy.box.resetNetwork()
@@ -1249,14 +1257,20 @@ class BaseService {
                 return Service.START_NOT_STICKY
             }
 
-            val proxy = ProxyInstance(profile, this)
+            val proxy: AbstractInstance = if (profile.requireBean() is BepassBean) {
+                Logs.d("Starting native bepass engine")
+                BepassInstance(profile, this)
+            } else {
+                ProxyInstance(profile, this)
+            }
             data.proxy = proxy
             data.connectionRecovery?.close()
             data.connectionRecovery = ConnectionRecoveryQueue(
                 urlTestRunning = { data.urlTestTracker.isRunning },
                 pause = { idle ->
                     if (data.proxy === proxy && data.state.started) {
-                        if (idle) proxy.box.sleep() else proxy.box.wake()
+                        val singBox = proxy.asProxyInstance()
+                        if (idle) singBox?.box?.sleep() else singBox?.box?.wake()
                     }
                 },
                 recover = { reconnect, reset, cause ->
@@ -1328,7 +1342,7 @@ class BaseService {
                         SagerNet.application.nativeInterface.setWifiRuleMonitoringEnabled(hasActiveWifiRules)
                         SagerNet.application.nativeInterface.unregisterWifiStateListener()
                         preInit()
-                        proxy.init()
+                        proxy.asProxyInstance()?.init()
                         currentCoroutineContext().ensureActive()
                         if (!ServiceLifecyclePolicy.startupProfileStillDesired(
                                 startedProfileId = profile.id,
@@ -1344,7 +1358,7 @@ class BaseService {
                             )
                             return@withLock
                         }
-                        proxy.configNormalizationViolations
+                        proxy.asProxyInstance()?.configNormalizationViolations
                             .takeIf { it.isNotEmpty() }
                             ?.joinToString("\n")
                             ?.let { data.changeState(State.Connecting, it) }
@@ -1352,7 +1366,7 @@ class BaseService {
                             SagerNet.application.nativeInterface.registerWifiStateListener()
                             SagerNet.application.nativeInterface.notifyWifiStateChanged("post-init")
                         }
-                        proxy.processes = GuardedProcessPool {
+                        proxy.asProxyInstance()?.processes = GuardedProcessPool {
                             Logs.w(it)
                             stopRunner(false, it.readableMessage)
                         }
