@@ -20,11 +20,13 @@ import kotlin.concurrent.thread
  * profile is active. The blocking libcore calls run on a dedicated worker
  * thread so [launch] returns promptly.
  *
- * Contract assumed from the agreed libcore API:
- * - [Libcore.BepassStartClient] blocks until the client is up and ready
+ * Contract assumed from the agreed libcore API (note: gobind lowercases the
+ * first letter of Go function names when generating Java, so the Kotlin
+ * call sites use lowercase-initial names):
+ * - [Libcore.bepassStartClient] blocks until the client is up and ready
  *   (or fails), returning false on failure.
- * - [Libcore.BepassStartTun] attaches the TUN fd and pumps packets until
- *   [Libcore.BepassStopTun] is called.
+ * - [Libcore.bepassStartTun] attaches the TUN fd and pumps packets until
+ *   [Libcore.bepassStopTun] is called.
  */
 class BepassInstance(
     val profile: ProxyEntity,
@@ -77,12 +79,12 @@ class BepassInstance(
 
     private fun runBepass(configJson: String) {
         try {
-            if (!Libcore.BepassStartClient(configJson)) {
+            if (!Libcore.bepassStartClient(configJson)) {
                 fail(R.string.bepass_start_failed)
                 return
             }
             Logs.d("bepass client started, attaching TUN")
-            if (!Libcore.BepassStartTun(tunFd, TUN_MTU, LOCAL_SOCKS)) {
+            if (!Libcore.bepassStartTun(tunFd.toLong(), TUN_MTU.toLong(), LOCAL_SOCKS)) {
                 fail(R.string.bepass_start_failed)
                 return
             }
@@ -105,7 +107,7 @@ class BepassInstance(
      */
     private fun buildConfigJson(): String {
         val root = try {
-            JSONObject(Libcore.BepassDefaultConfig())
+            JSONObject(Libcore.bepassDefaultConfig())
         } catch (e: Exception) {
             Logs.w(e)
             JSONObject()
@@ -153,8 +155,8 @@ class BepassInstance(
     private fun fail(message: String) {
         if (!tornDown.compareAndSet(false, true)) return
         Logs.w("bepass engine failed: $message")
-        runCatching { Libcore.BepassStopTun() }.onFailure { Logs.w(it) }
-        runCatching { Libcore.BepassStopClient() }.onFailure { Logs.w(it) }
+        runCatching { Libcore.bepassStopTun() }.onFailure { Logs.w(it) }
+        runCatching { Libcore.bepassStopClient() }.onFailure { Logs.w(it) }
         closeTunFd()
         runCatching {
             service.stopRunner(false, message)
@@ -175,8 +177,8 @@ class BepassInstance(
 
     override fun close() {
         if (!tornDown.compareAndSet(false, true)) return
-        runCatching { Libcore.BepassStopTun() }.onFailure { Logs.w(it) }
-        runCatching { Libcore.BepassStopClient() }.onFailure { Logs.w(it) }
+        runCatching { Libcore.bepassStopTun() }.onFailure { Logs.w(it) }
+        runCatching { Libcore.bepassStopClient() }.onFailure { Logs.w(it) }
         try {
             worker?.join(5_000L)
         } catch (e: InterruptedException) {

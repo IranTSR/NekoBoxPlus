@@ -278,7 +278,7 @@ class NativeInterface : BoxPlatformInterface, NB4AInterface {
                     return@runOnDefaultDispatcher
                 }
                 val id = proxy.config.profileTagMap
-                    .filterValues { it == tag }.keys.firstOrNull() ?: -1
+                    .filterValues { it == tag }.keys.firstOrNull() ?: -1L
                 val ent = SagerDatabase.proxyDao.getById(id) ?: return@runOnDefaultDispatcher
                 // traffic & title
                 proxy.apply {

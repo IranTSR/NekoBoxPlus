@@ -48,13 +48,6 @@ bash buildScript/lib/core.docker.sh
 
 [ -f app/libs/libcore.aar ] || { echo "app/libs/libcore.aar missing after core.docker.sh" >&2; exit 1; }
 
-# --- TEMP DIAGNOSTIC (bepass): verify the fresh AAR actually exports the Bepass bindings ---
-echo ">> diagnostic: listing Bepass methods in libcore.aar"
-rm -rf /tmp/aar-check && mkdir -p /tmp/aar-check
-unzip -o -q app/libs/libcore.aar -d /tmp/aar-check 'classes.jar'
-javap -classpath /tmp/aar-check/classes.jar libcore.Libcore 2>&1 | grep -i "bepass" \
-  || echo "DIAGNOSTIC-FAIL: no Bepass methods found in libcore.Libcore"
-
 # --- gradle -------------------------------------------------------------
 NDK_DIR="${ANDROID_NDK_HOME:-$(find "$ANDROID_HOME/ndk" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n1)}"
 {
