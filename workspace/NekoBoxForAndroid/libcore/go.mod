@@ -4,6 +4,7 @@ go 1.27.1
 
 require (
 	github.com/Mahdi-zarei/speedtest-go v1.7.13-0.20260107171856-79c565dfd83a
+	github.com/bepass-org/bepass v1.6.3-0.20231004165641-38f7979bd654
 	github.com/exclavenetwork/sing-juicity v0.3.0-beta.2
 	github.com/gofrs/uuid/v5 v5.5.1
 	github.com/golang/protobuf v1.5.4
@@ -37,11 +38,16 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
+	github.com/AdguardTeam/golibs v0.10.9 // indirect
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
 	github.com/RyuaNerin/go-krypto v1.3.0 // indirect
+	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da // indirect
+	github.com/aead/poly1305 v0.0.0-20180717145839-3fee0db0b635 // indirect
 	github.com/ajg/form v1.7.1 // indirect
 	github.com/akutz/memconn v0.1.0 // indirect
 	github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa // indirect
+	github.com/ameshkov/dnscrypt/v2 v2.2.7 // indirect
+	github.com/ameshkov/dnsstamps v1.0.3 // indirect
 	github.com/amnezia-vpn/amneziawg-go/v3 v3.0.0 // indirect
 	github.com/anchore/go-lzo v0.1.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
@@ -57,12 +63,18 @@ require (
 	github.com/coreos/go-iptables v0.8.0 // indirect
 	github.com/creack/pty v1.1.24 // indirect
 	github.com/cretz/bine v0.2.0 // indirect
+	github.com/daeuniverse/softwind v0.0.0-20230809141237-cbe650b0e27c // indirect
 	github.com/database64128/netx-go v0.1.1 // indirect
 	github.com/database64128/tfo-go/v2 v2.3.2 // indirect
 	github.com/dblohm7/wingoes v0.0.0-20240119213807-a09d6be7affa // indirect
 	github.com/dgryski/go-camellia v0.0.0-20191119043421-69a8a13fb23d // indirect
+	github.com/djherbis/buffer v1.2.0 // indirect
+	github.com/djherbis/nio v2.0.3+incompatible // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
+	github.com/eknkc/basex v1.0.1 // indirect
+	github.com/elazarl/goproxy v0.0.0-20230731152917-f99041a5c027 // indirect
 	github.com/enfein/mieru/v3 v3.36.0 // indirect
+	github.com/eycorsican/go-tun2socks v0.0.0 // indirect
 	github.com/florianl/go-nfqueue/v2 v2.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
@@ -80,6 +92,8 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/gopacket v1.1.19 // indirect
 	github.com/google/nftables v0.2.1-0.20240414091927-5e242ec57806 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/hdevalence/ed25519consensus v0.2.0 // indirect
 	github.com/huin/goupnp v1.3.0 // indirect
@@ -161,6 +175,7 @@ require (
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
 	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/smallstep/pkcs7 v0.1.1 // indirect
+	github.com/songgao/water v0.0.0-20200317203138-2b4b6d7c09d8 // indirect
 	github.com/tailscale/certstore v0.1.1-0.20260409135935-3638fb84b77d // indirect
 	github.com/tailscale/go-winio v0.0.0-20231025203758-c4f33415bf55 // indirect
 	github.com/tailscale/hujson v0.0.0-20260302212456-ecc657c15afd // indirect
@@ -169,6 +184,7 @@ require (
 	github.com/tailscale/web-client-prebuilt v0.0.0-20250124233751-d4cd19a26976 // indirect
 	github.com/tetratelabs/wazero v1.12.0 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
+	github.com/v2pro/plz v0.0.0-20221028024117-e5f9aec5b631 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
 	github.com/wasilibs/go-re2 v1.12.0 // indirect
 	github.com/wasilibs/wazero-helpers v0.0.0-20250123031827-cd30c44769bb // indirect
@@ -228,3 +244,8 @@ replace github.com/metacubex/sing-shadowsocks2 => github.com/Restia-Ashbell/sing
 // replace berty.tech/go-libtor => github.com/berty/go-libtor v0.0.0-20220627102132-9189eb6e3982
 
 replace github.com/metacubex/utls => ../../utls
+
+// bepass mobile tun2socks imports eycorsican/go-tun2socks, which bepass itself
+// replaces with the trojan-gfw fork; a dependency's replace is dropped when
+// imported, so mirror it here to build exactly what bepass builds against.
+replace github.com/eycorsican/go-tun2socks => github.com/trojan-gfw/go-tun2socks v1.16.3-0.20210702214000-083d49176e05
