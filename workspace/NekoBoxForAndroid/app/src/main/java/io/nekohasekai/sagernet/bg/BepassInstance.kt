@@ -50,6 +50,14 @@ class BepassInstance(
     @Volatile
     private var tunFd: Int = -1
 
+    /**
+     * True once the fd was handed to the Go pump: Go's BepassStopTun closes
+     * it, so Kotlin must not close it again (double-close could close an
+     * unrelated recycled fd).
+     */
+    @Volatile
+    private var tunOwnedByGo = false
+
     @Volatile
     private var worker: Thread? = null
 
@@ -78,6 +86,8 @@ class BepassInstance(
                 fail(R.string.bepass_start_failed)
                 return
             }
+            // Pump is running and Go owns the fd from here on.
+            tunOwnedByGo = true
             // BepassStartTun returns once BepassStopTun() is called: normal shutdown.
             Logs.d("bepass TUN loop ended")
         } catch (e: Throwable) {
@@ -155,7 +165,8 @@ class BepassInstance(
         val fd = tunFd
         tunFd = -1
         tun = null
-        if (fd >= 0) {
+        // Skip when Go owns the fd: BepassStopTun already closed it.
+        if (fd >= 0 && !tunOwnedByGo) {
             runCatching {
                 ParcelFileDescriptor.adoptFd(fd).close()
             }.onFailure { Logs.w(it) }

@@ -28,7 +28,9 @@
 //   - server.Run reads the GLOBAL config.G; bepass's own mobile StartClient
 //     unmarshals JSON into a throwaway local, silently discarding it. We
 //     populate config.G explicitly in BepassStartClient.
-//   - BepassStartClient BLOCKS (socks5 ListenAndServe); call from a worker thread.
+//   - BepassStartClient blocks only until the SOCKS listener is ready
+//     (~15s max); BepassStartTun blocks until BepassStopTun. Call both from
+//     a worker thread.
 //   - In fragment mode (WorkerEnabled=false) bepass registers no SOCKS5 UDP
 //     ASSOCIATE handler; the default handler dials UDP with plain net.Dial —
 //     unprotected and unfragmented. UDP through the bepass core is therefore
@@ -42,6 +44,7 @@ import (
 	"log"
 	"net"
 	"sync"
+	"time"
 
 	bepassmobile "github.com/bepass-org/bepass/cmd/mobile"
 	bepassconfig "github.com/bepass-org/bepass/config"
@@ -53,11 +56,17 @@ import (
 // the address Kotlin passes to BepassStartTun.
 const bepassDefaultSocks = "127.0.0.1:10821"
 
+// bepassClientReadyTimeout bounds how long BepassStartClient waits for the
+// core's SOCKS listener to accept connections.
+const bepassClientReadyTimeout = 15 * time.Second
+
 var (
 	bepassClientMu      sync.Mutex
 	bepassClientRunning bool
+	bepassProtectHeld   bool
 	bepassTunMu         sync.Mutex
 	bepassTunRunning    bool
+	bepassTunStopCh     chan struct{}
 )
 
 // BepassDefaultConfig returns bepass's stock defaults (from its config.json)
@@ -105,14 +114,15 @@ func BepassDefaultConfig() string {
 	return string(out)
 }
 
-// BepassStartClient parses configJSON into bepass's global config and runs the
-// bepass core: a SOCKS5 (+HTTP) listener on BindAddress (default
+// BepassStartClient parses configJSON into bepass's global config and starts
+// the bepass core: a SOCKS5 (+HTTP) listener on BindAddress (default
 // 127.0.0.1:10821) whose outbound TLS connections are fragmented for DPI
 // bypass.
 //
-// THIS CALL BLOCKS until BepassStopClient is called or the listener fails —
-// Kotlin must invoke it on a background thread. Returns false if the config
-// JSON is invalid or the core exits with an error.
+// The core runs on its own goroutine. This function BLOCKS only until the
+// SOCKS listener accepts connections (or fails/times out, ~15s), then
+// returns true. Kotlin must still call it on a background thread. Returns
+// false if the config JSON is invalid or the core fails to come up.
 func BepassStartClient(configJSON string) bool {
 	var cfg bepassconfig.Config
 	if err := json.Unmarshal([]byte(configJSON), &cfg); err != nil {
@@ -124,34 +134,81 @@ func BepassStartClient(configJSON string) bool {
 	// would be silently ignored. Populate the global explicitly.
 	*bepassconfig.G = cfg
 
+	bepassClientMu.Lock()
+	if bepassClientRunning {
+		bepassClientMu.Unlock()
+		return true // already up
+	}
+	bepassClientRunning = true
 	// Keep libcore's protect server up for the client's whole lifetime so
 	// bepass's protect_path fd-passing has a listener (refcounted; safe to
-	// nest with sing-box's own usage).
+	// nest with sing-box's own usage). Released in BepassStopClient and on
+	// the failure paths below.
 	acquireProtect()
-	defer releaseProtect()
-
-	bepassClientMu.Lock()
-	bepassClientRunning = true
+	bepassProtectHeld = true
 	bepassClientMu.Unlock()
+
+	releaseOnFailure := true
 	defer func() {
-		bepassClientMu.Lock()
-		bepassClientRunning = false
-		bepassClientMu.Unlock()
+		if releaseOnFailure {
+			bepassClientMu.Lock()
+			if bepassProtectHeld {
+				releaseProtect()
+				bepassProtectHeld = false
+			}
+			bepassClientMu.Unlock()
+		}
 	}()
 
-	if err := bepassserver.Run(false); err != nil {
-		log.Println("bepass: core exited with error:", err)
-		return false
+	errCh := make(chan error, 1)
+	go func() {
+		defer func() {
+			bepassClientMu.Lock()
+			bepassClientRunning = false
+			bepassClientMu.Unlock()
+		}()
+		if err := bepassserver.Run(false); err != nil {
+			log.Println("bepass: core exited with error:", err)
+			errCh <- err
+		}
+	}()
+
+	bindAddr := cfg.BindAddress
+	if bindAddr == "" {
+		bindAddr = bepassDefaultSocks
 	}
-	return true
+	deadline := time.Now().Add(bepassClientReadyTimeout)
+	for {
+		select {
+		case <-errCh:
+			return false
+		default:
+		}
+		if conn, err := net.DialTimeout("tcp", bindAddr, 500*time.Millisecond); err == nil {
+			conn.Close()
+			releaseOnFailure = false // protect server stays up until StopClient
+			return true
+		}
+		if time.Now().After(deadline) {
+			log.Println("bepass: core did not listen in time")
+			_ = bepassserver.ShutDown()
+			return false
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
 }
 
-// BepassStopClient shuts down the bepass core started by BepassStartClient,
-// unblocking it. Safe to call when the client is not running.
+// BepassStopClient shuts down the bepass core started by BepassStartClient.
+// Safe to call when the client is not running.
 func BepassStopClient() (ok bool) {
 	bepassClientMu.Lock()
 	running := bepassClientRunning
+	held := bepassProtectHeld
+	bepassProtectHeld = false
 	bepassClientMu.Unlock()
+	if held {
+		releaseProtect()
+	}
 	if !running {
 		return true
 	}
@@ -170,13 +227,16 @@ func BepassStopClient() (ok bool) {
 
 // BepassStartTun starts bepass's tun2socks LWIP pump on an already-opened
 // Android TUN fd, forwarding device traffic through the SOCKS5 at socksAddr
-// (normally "127.0.0.1:10821", served by BepassStartClient). It returns
-// immediately; the pump runs in the background. IPv6 is disabled (the app
-// targets IPv4-only networks). Returns false on invalid arguments.
+// (normally "127.0.0.1:10821", served by BepassStartClient).
+//
+// THIS CALL BLOCKS until BepassStopTun is called, then returns true —
+// Kotlin runs it on the bepass worker thread and treats the return as
+// normal shutdown. IPv6 is disabled (the app targets IPv4-only networks).
+// Returns false immediately on invalid arguments or pump start failure.
 //
 // Ownership note: the pump closes the fd on BepassStopTun — Kotlin must pass
 // a detached fd (ParcelFileDescriptor.detachFd()) and must not close it
-// again itself.
+// again itself after a successful start.
 func BepassStartTun(tunFd int, mtu int, socksAddr string) bool {
 	if tunFd < 0 {
 		log.Println("bepass: invalid tun fd")
@@ -191,6 +251,17 @@ func BepassStartTun(tunFd int, mtu int, socksAddr string) bool {
 	if mtu <= 0 {
 		mtu = 1500
 	}
+	bepassTunMu.Lock()
+	if bepassTunRunning {
+		bepassTunMu.Unlock()
+		log.Println("bepass: tun already running")
+		return false
+	}
+	stopCh := make(chan struct{})
+	bepassTunStopCh = stopCh
+	bepassTunRunning = true
+	bepassTunMu.Unlock()
+
 	// FakeIPRange stays empty: bepass Fatalf's on an unparsable CIDR, and we
 	// do not use its fake-DNS path.
 	if rc := bepassmobile.Start(&bepassmobile.StartOptions{
@@ -202,29 +273,35 @@ func BepassStartTun(tunFd int, mtu int, socksAddr string) bool {
 		AllowLan:     false,
 	}); rc != 0 {
 		log.Println("bepass: tun pump failed to start")
+		bepassTunMu.Lock()
+		bepassTunRunning = false
+		bepassTunMu.Unlock()
 		return false
 	}
-	bepassTunMu.Lock()
-	bepassTunRunning = true
-	bepassTunMu.Unlock()
+	<-stopCh
 	return true
 }
 
-// BepassStopTun stops the tun2socks pump started by BepassStartTun and closes
-// the TUN fd on the Go side (see ownership note on BepassStartTun). Safe to
-// call when the pump is not running.
+// BepassStopTun stops the tun2socks pump started by BepassStartTun (closing
+// the TUN fd on the Go side, see ownership note on BepassStartTun) and
+// unblocks the BepassStartTun call. Safe to call when the pump is not
+// running.
 func BepassStopTun() {
 	bepassTunMu.Lock()
-	running := bepassTunRunning
-	bepassTunRunning = false
-	bepassTunMu.Unlock()
-	if !running {
+	if !bepassTunRunning {
+		bepassTunMu.Unlock()
 		return
 	}
+	bepassTunRunning = false
+	stopCh := bepassTunStopCh
+	bepassTunStopCh = nil
+	bepassTunMu.Unlock()
+
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("bepass: stop tun recovered from panic:", r)
 		}
 	}()
 	bepassmobile.Stop()
+	close(stopCh)
 }
