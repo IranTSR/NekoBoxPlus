@@ -1,8 +1,8 @@
-// Package libcore — bepass native protocol bindings.
+// Package libcore - bepass native protocol bindings.
 //
 // bepass (github.com/bepass-org/bepass) is a TLS ClientHello-fragmentation
 // DPI-bypass engine. It is compiled INTO this libcore AAR (single Go runtime);
-// a separate bepass AAR must never be built alongside it — two Go runtimes
+// a separate bepass AAR must never be built alongside it - two Go runtimes
 // collide on the JNI go.Seq namespace and the VPN will not start.
 //
 // Architecture when a bepass profile is active (sing-box is NOT started):
@@ -14,14 +14,14 @@
 // Socket protection: bepass's dialer (dialer/tcp.go TCPDial) routes every
 // outbound TCP connection through protect.NewClientDialer() when
 // EnableLowLevelSockets is true on android. protect/protect_linux.go (which
-// IS compiled for android — Go satisfies the linux build tag on android)
+// IS compiled for android - Go satisfies the linux build tag on android)
 // overrides softwind's netproxy.SoMark/SoMarkControl to pass the socket fd
 // over a Unix-domain socket at the relative path "protect_path" instead of
 // using SO_MARK. libcore's InitCore chdir's into <cache>/../no_backup, so
 // that relative path resolves to the exact socket libcore's own protect
 // server listens on (protect.go, started via acquireProtect below), whose
 // callback ends in VpnService.protect(fd) on the Kotlin side.
-// No bepass fork and no custom dialer hook are needed — the stock bepass
+// No bepass fork and no custom dialer hook are needed - the stock bepass
 // protect path plugs straight into libcore's existing one.
 //
 // Caveats (upstream bepass behavior, not worked around here):
@@ -32,7 +32,7 @@
 //     (~15s max); BepassStartTun blocks until BepassStopTun. Call both from
 //     a worker thread.
 //   - In fragment mode (WorkerEnabled=false) bepass registers no SOCKS5 UDP
-//     ASSOCIATE handler; the default handler dials UDP with plain net.Dial —
+//     ASSOCIATE handler; the default handler dials UDP with plain net.Dial -
 //     unprotected and unfragmented. UDP through the bepass core is therefore
 //     not DPI-bypassed in this mode (upstream limitation).
 //   - The DNSCrypt branch (RemoteDNSAddr not starting with https://) also
@@ -130,7 +130,7 @@ func BepassStartClient(configJSON string) bool {
 		return false
 	}
 	// NOTE: bepass's server package reads the GLOBAL config.G, and bepass's
-	// own mobile StartClient unmarshals into a throwaway local — so the JSON
+	// own mobile StartClient unmarshals into a throwaway local - so the JSON
 	// would be silently ignored. Populate the global explicitly.
 	*bepassconfig.G = cfg
 
@@ -229,12 +229,12 @@ func BepassStopClient() (ok bool) {
 // Android TUN fd, forwarding device traffic through the SOCKS5 at socksAddr
 // (normally "127.0.0.1:10821", served by BepassStartClient).
 //
-// THIS CALL BLOCKS until BepassStopTun is called, then returns true —
+// THIS CALL BLOCKS until BepassStopTun is called, then returns true -
 // Kotlin runs it on the bepass worker thread and treats the return as
 // normal shutdown. IPv6 is disabled (the app targets IPv4-only networks).
 // Returns false immediately on invalid arguments or pump start failure.
 //
-// Ownership note: the pump closes the fd on BepassStopTun — Kotlin must pass
+// Ownership note: the pump closes the fd on BepassStopTun - Kotlin must pass
 // a detached fd (ParcelFileDescriptor.detachFd()) and must not close it
 // again itself after a successful start.
 func BepassStartTun(tunFd int, mtu int, socksAddr string) bool {
@@ -243,7 +243,7 @@ func BepassStartTun(tunFd int, mtu int, socksAddr string) bool {
 		return false
 	}
 	// bepass's mobile Start calls log.Fatalf (kills the process) on a bad
-	// proxy address — validate here and fail gracefully instead.
+	// proxy address - validate here and fail gracefully instead.
 	if _, err := net.ResolveTCPAddr("tcp", socksAddr); err != nil {
 		log.Println("bepass: invalid socks address:", err)
 		return false
