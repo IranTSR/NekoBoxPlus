@@ -1359,7 +1359,7 @@ class BaseService {
                             return@withLock
                         }
                         proxy.asProxyInstance()?.configNormalizationViolations
-                            .takeIf { it.isNotEmpty() }
+                            ?.takeIf { it.isNotEmpty() }
                             ?.joinToString("\n")
                             ?.let { data.changeState(State.Connecting, it) }
                         if (hasActiveWifiRules) {

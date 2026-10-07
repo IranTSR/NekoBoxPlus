@@ -25,6 +25,7 @@ import androidx.core.app.NotificationManagerCompat
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.bg.ServiceNotification
+import io.nekohasekai.sagernet.bg.asProxyInstance
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.Logs
@@ -272,7 +273,7 @@ class NativeInterface : BoxPlatformInterface, NB4AInterface {
         }
         service.apply {
             runOnDefaultDispatcher {
-                val proxy = data.proxy ?: run {
+                val proxy = data.proxy?.asProxyInstance() ?: run {
                     resetCoreNetwork()
                     return@runOnDefaultDispatcher
                 }
