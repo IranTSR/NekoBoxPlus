@@ -249,3 +249,8 @@ replace github.com/metacubex/utls => ../../utls
 // replaces with the trojan-gfw fork; a dependency's replace is dropped when
 // imported, so mirror it here to build exactly what bepass builds against.
 replace github.com/eycorsican/go-tun2socks => github.com/trojan-gfw/go-tun2socks v1.16.3-0.20210702214000-083d49176e05
+
+// Use our fork (IranTSR/bepass) which fixes the fatal
+// "concurrent map writes" race in transport.WSTunnel.PersistentDial
+// (upstream bepass-org/bepass is unmaintained since Mar 2024).
+replace github.com/bepass-org/bepass => github.com/IranTSR/bepass v1.6.4

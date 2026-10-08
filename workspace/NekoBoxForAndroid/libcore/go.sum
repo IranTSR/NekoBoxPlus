@@ -655,3 +655,5 @@ software.sslmate.com/src/go-pkcs12 v0.4.0 h1:H2g08FrTvSFKUj+D309j1DPfk5APnIdAQAB
 software.sslmate.com/src/go-pkcs12 v0.4.0/go.mod h1:Qiz0EyvDRJjjxGyUQa2cCNZn/wMyzrRJ/qcDXOQazLI=
 zombiezen.com/go/capnproto2 v2.18.2+incompatible h1:v3BD1zbruvffn7zjJUU5Pn8nZAB11bhZSQC4W+YnnKo=
 zombiezen.com/go/capnproto2 v2.18.2+incompatible/go.mod h1:XO5Pr2SbXgqZwn0m0Ru54QBqpOf4K5AYBO+8LAOBQEQ=
+github.com/IranTSR/bepass v1.6.4 h1:3blQcCeLdzr8UXEWQPOQqGx9/U99i3MFrTxBzJ8u4S8=
+github.com/IranTSR/bepass v1.6.4/go.mod h1:ZpMu0xwn7Yh+rh6ChmWtqhr/3e856Yr573TY/I14NqM=
